@@ -58,19 +58,22 @@ async def get_contact(contact_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/", response_model=ContactResponse, status_code=status.HTTP_201_CREATED)
-async def create_contact(body: ContactSchema, db: AsyncSession = Depends(get_db)):
-    return await repositories_contacts.create_contact(body, db)
+async def create_contact(body: ContactSchema, db: AsyncSession = Depends(get_db),
+                         user: User = Depends(auth_service.get_current_user)):
+    return await repositories_contacts.create_contact(body, db, user)
 
 
 @router.put("/{contact_id}")
-async def update_contact(body: ContactUpdate, contact_id: int = Path(ge=1), db: AsyncSession = Depends(get_db)):
-    contact = await repositories_contacts.update_contact(contact_id, body, db)
+async def update_contact(body: ContactUpdate, contact_id: int = Path(ge=1), db: AsyncSession = Depends(get_db),
+                         user: User = Depends(auth_service.get_current_user)):
+    contact = await repositories_contacts.update_contact(contact_id, body, db, user)
     if contact is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
     return contact
 
 
 @router.delete("/{contact_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_contact(contact_id: int = Path(ge=1), db: AsyncSession = Depends(get_db)):
-    contact = await repositories_contacts.delete_contact(contact_id, db)
+async def delete_contact(contact_id: int = Path(ge=1), db: AsyncSession = Depends(get_db),
+                         user: User = Depends(auth_service.get_current_user)):
+    contact = await repositories_contacts.delete_contact(contact_id, db, user)
     return contact
