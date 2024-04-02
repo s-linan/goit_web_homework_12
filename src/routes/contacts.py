@@ -42,15 +42,17 @@ async def get_contacts(limit: int = Query(10, ge=10, le=500), offset: int = Quer
 
 @router.get("/all", response_model=List[ContactResponse], dependencies=[Depends(access_to_route_all)])
 async def get_all_contacts(limit: int = Query(10, ge=10, le=500), offset: int = Query(0, ge=0),
-                           db: AsyncSession = Depends(get_db)):
-    contacts = await repositories_contacts.get_contacts(limit, offset, db)
+                           db: AsyncSession = Depends(get_db),
+                           user: User = Depends(auth_service.get_current_user)):
+    contacts = await repositories_contacts.get_contacts(limit, offset, db, user)
     print(type(contacts))
     return contacts
 
 
 @router.get("/{contact_id}", response_model=ContactResponse)
-async def get_contact(contact_id: int, db: AsyncSession = Depends(get_db)):
-    contact = await repositories_contacts.get_contact(contact_id, db)
+async def get_contact(contact_id: int, db: AsyncSession = Depends(get_db),
+                      user: User = Depends(auth_service.get_current_user)):
+    contact = await repositories_contacts.get_contact(contact_id, db, user)
     if not contact:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
     print(type(contact))
